@@ -2,3 +2,5 @@
 
 .settings/org.eclipse.core.resources.prefs
 *.prefs
+*.classpath
+.project
