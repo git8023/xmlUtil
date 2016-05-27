@@ -64,7 +64,7 @@ public class XMLObject implements Serializable {
 
 	/**
 	 * @Title: getContent
-	 * @Description: 获取标签存文本内容
+	 * @Description: 获取当前标签文本内容
 	 * @return String 存文本内容
 	 */
 	public String getContent() {
@@ -73,7 +73,7 @@ public class XMLObject implements Serializable {
 
 	/**
 	 * @Title: setContent
-	 * @Description: 设置标签存文本内容
+	 * @Description: 设置标签文本内容
 	 * @param content 标签存文本内容
 	 */
 	public void setContent(String content) {
@@ -82,7 +82,7 @@ public class XMLObject implements Serializable {
 
 	/**
 	 * @Title: getAttrs
-	 * @Description: 获取标签属性
+	 * @Description: 获取标签属性列表
 	 * @return Map&lt;String,String&gt; 标签属性集合, Key:属性名, Value:属性值
 	 */
 	public Map<String, String> getAttrs() {
