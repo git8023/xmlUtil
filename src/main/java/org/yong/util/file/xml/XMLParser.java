@@ -88,8 +88,9 @@ public class XMLParser {
 	 * 
 	 *               <pre>
 	 * &lt;root&gt;
+	 *   tag content
 	 *   &lt;tag&gt;
-	 *     <span style="color:#F00">tag content</span>
+	 *     child tag content
 	 *     &lt;sub-tag id="subTag"&gt;sub tag content&lt;/sub-tag&gt;
 	 *   &lt;/tag&gt;
 	 *   <span style="color:#F00">&lt;!-- &lt;desc&gt; 这个内容将不会解析 &lt;/desc&gt; --&gt;</span>
@@ -114,7 +115,6 @@ public class XMLParser {
 
 		// 解析XML
 		parseNode(xmlObject, rootElement);
-
 		return xmlObject;
 	}
 
@@ -129,10 +129,8 @@ public class XMLParser {
 			Node subNode = node.node(i);
 			XMLObject subXmlObject = null;
 			if (subNode instanceof Element) {
-
 				// 添加子标签
 				subXmlObject = appendSubTag(xmlObject, subNode);
-
 				// 解析子标签
 				parseNode(subXmlObject, (Element) subNode);
 
@@ -142,14 +140,8 @@ public class XMLParser {
 			if (subNode instanceof Comment) {
 				continue;
 			}
-
-			// 同时设置属性和内容
-			// 且只设置一次
-			setAttrsAndContent(subXmlObject, node);
-
 		}
 
-		// 设置跟标签
 		setAttrsAndContent(xmlObject, node);
 
 		// 根据策略去除重复标签
@@ -213,7 +205,6 @@ public class XMLParser {
 		for (int i = 0, size = node.attributeCount(); i < size; i++) {
 			// 获取属性
 			Attribute attr = node.attribute(i);
-
 			// 获取属性名
 			String attrName = attr.getName();
 

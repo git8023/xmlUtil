@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root version="1">
+    <!-- 这是注释 -->
+    
+    <!-- 空标签 -->
+    <first-child />
+    
+    <!-- 仅有标签体 -->
+    <only-tag-content>Only Tag Content</only-tag-content>
+    
+    <!-- 仅有标签属性 -->
+    <only-tag-attrs name="TagName" id="ID1" />
+    
+    <!-- 同时拥有过标签体和属性 -->
+    <attrs-content name="AttrVal">More Content</attrs-content>
+    
+    <child-eq>child eq</child-eq>
+    <child-eq id="ID" name="test">child eq</child-eq>
+</root>

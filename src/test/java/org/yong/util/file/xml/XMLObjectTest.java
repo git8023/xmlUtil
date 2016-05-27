@@ -20,7 +20,7 @@ public class XMLObjectTest {
 
 	@Before
 	public void before() throws Exception {
-		String xmlPath = XMLParserTest.class.getResource("/xml-test.xml").getFile();
+		String xmlPath = XMLParserTest.class.getResource("/xml-test-2.xml").getFile();
 		assertNotNull(xmlPath);
 
 		File file = new File(xmlPath);
@@ -33,6 +33,8 @@ public class XMLObjectTest {
 	@Test
 	public void testGetTagName() {
 		String tagName = root.getTagName();
+		System.out.println(root.getAttrs().hashCode());
+		System.out.println(root.getChildTags().get("div").get(0).getAttrs().hashCode());
 		assertEquals("root", tagName);
 	}
 

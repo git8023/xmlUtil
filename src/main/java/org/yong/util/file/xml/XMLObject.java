@@ -292,6 +292,6 @@ public class XMLObject implements Serializable {
 
 	@Override
 	public String toString() {
-		return "XMLObject [tagName=" + tagName + ", attrs=" + attrs + "]";
+		return "XMLObject [tagName=" + tagName + ", content=" + content + ", attrs=" + attrs + "]";
 	}
 }
