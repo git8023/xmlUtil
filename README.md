@@ -25,7 +25,7 @@
   * 操作`XMLObject`实例对象来读取文件中的内容<br/>
   使用`XMLObject`实例对象可以获取`标签名`, `属性列表`, `子标签实例`, 等等...(API 详情请在`/doc/index.html`中查阅)
 
-# 依赖jar包
+# `maven`依赖
 <pre>
 &lt;dependency&gt;
     &lt;groupId&gt;dom4j&lt;/groupId&gt;
