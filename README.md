@@ -44,6 +44,18 @@
       // markerNode可以是任意节点  
       boolean success = newNode.appendBefore(markerNode, false);  
       ```
+  
+  * 导出`XML`文件
+  ```Java
+  // boolean XMLParser.transferRoot(XMLObject root, File outputFile, boolean compact) throws IOException
+  // 导出缩进排版的文件
+  String path = XMLParserTest2.class.getResource("/").getPath() + "xml-transfer2-retract.xml";
+	boolean success = xmlParser.transferRoot(root, new File(path), false);
+	
+	// 导出紧凑格排版的文件
+	path = XMLParserTest2.class.getResource("/").getPath() + "xml-test-transfer2-compact.xml";
+	success = xmlParser.transferRoot(root, new File(path), true);
+  ```
 * v1.0<br>
   实现最基本的`XML`读取操作
 
