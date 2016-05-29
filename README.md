@@ -92,7 +92,7 @@
     <version>3.4</version>
 </dependency>
 
-<!-- v1.1 -->
+<!-- v1.0 -->
 <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
