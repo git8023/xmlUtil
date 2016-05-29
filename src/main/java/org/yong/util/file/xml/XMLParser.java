@@ -1,8 +1,11 @@
 package org.yong.util.file.xml;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.dom4j.Attribute;
 import org.dom4j.Comment;
 import org.dom4j.Document;
@@ -10,6 +13,10 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yong.util.file.xml.fmt.XMLObjectFormatter;
+import org.yong.util.file.xml.fmt.XMLObjectFormatterFactory;
 
 /**
  * @Author Huang.Yong
@@ -26,6 +33,8 @@ import org.dom4j.io.SAXReader;
  * @see XMLObject
  */
 public class XMLParser {
+
+	private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
 	/** XML 文件路径 */
 	private String path;
@@ -112,6 +121,8 @@ public class XMLParser {
 
 		// 构建 XMLObject 对象
 		XMLObject xmlObject = new XMLObject(tagName);
+		xmlObject.setParent(null);
+		xmlObject.setRoot(Boolean.TRUE);
 
 		// 解析XML
 		parseNode(xmlObject, rootElement);
@@ -129,14 +140,11 @@ public class XMLParser {
 			Node subNode = node.node(i);
 			XMLObject subXmlObject = null;
 			if (subNode instanceof Element) {
-				// 添加子标签
 				subXmlObject = appendSubTag(xmlObject, subNode);
-				// 解析子标签
 				parseNode(subXmlObject, (Element) subNode);
-
+				subXmlObject.setParent(xmlObject);
 			}
 
-			// 跳过注释
 			if (subNode instanceof Comment) {
 				continue;
 			}
@@ -244,4 +252,63 @@ public class XMLParser {
 		}
 		return new File(path);
 	}
+
+	/**
+	 * @Title: transferRoot
+	 * @Description: 转换为文件中, 必须从根节点开始
+	 * @param root 根元素
+	 * @param outputFile 输出文件
+	 * @param compact true-紧凑排版, false-缩进排版
+	 * @return boolean true-转换成功, false-转换失败
+	 * @throws IOException
+	 */
+	public boolean transferRoot(XMLObject root, File outputFile, boolean compact) throws IOException {
+		// root校验
+		if (null == root || !root.isRoot()) {
+			LOGGER.debug("The target node is invald root element");
+			return false;
+		}
+
+		// 输出文件校验
+		if (null == outputFile) {
+			LOGGER.debug("The target output file is invalid");
+			return false;
+		} else if (!outputFile.exists()) {
+			LOGGER.debug("The target output file is not exist, will create it");
+			File parent = outputFile.getParentFile();
+			if (!parent.exists()) {
+				parent.mkdirs();
+			}
+			// outputFile.createNewFile();
+		} else {
+			LOGGER.warn("The target output file is not empty, will clean it");
+		}
+
+		// 格式化输出
+		// 创建格式化输出工具
+		XMLObjectFormatter formatter = XMLObjectFormatterFactory.createFormatter(compact);
+
+		// 执行格式化
+		StringBuilder content = formatter.format(root);
+
+		// 将格式化内容写入文件
+		FileUtils.write(outputFile, content, false);
+
+		return true;
+	}
+
+	/**
+	 * @Title: createNode
+	 * @Description: 创建新标签
+	 * @param tagName 标签名
+	 * @param content 标签体
+	 * @param attrs 属性列表
+	 * @return XMLObject 新节点对象
+	 */
+	public static XMLObject createNode(String tagName, String content, Map<String, String> attrs) {
+		XMLObject newNode = new XMLObject(tagName, content, attrs);
+		newNode.setParent(null);
+		return newNode;
+	}
+
 }

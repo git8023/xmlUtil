@@ -1,9 +1,6 @@
-package org.yong.util.file.xml;
+package org.yong.util.file.xml.object;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.List;
@@ -11,6 +8,9 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.yong.util.file.xml.XMLObject;
+import org.yong.util.file.xml.XMLParser;
+import org.yong.util.file.xml.parser.XMLParserTest;
 
 public class XMLObjectTest {
 
@@ -95,12 +95,12 @@ public class XMLObjectTest {
 
 	@Test
 	public void testHasChildTag() {
-		XMLObject subTag = new XMLObject("other");
+		XMLObject subTag = XMLParser.createNode("other", null, null);
 		boolean hasChildTag = root.hasChildTag(subTag);
 		assertFalse(hasChildTag);
 
 		// XMLObject.equals
-		XMLObject childEq = new XMLObject("child-eq");
+		XMLObject childEq = XMLParser.createNode("child-eq", null, null);
 		hasChildTag = root.hasChildTag(childEq);
 		assertFalse(hasChildTag);
 

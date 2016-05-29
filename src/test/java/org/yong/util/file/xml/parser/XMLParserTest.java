@@ -1,12 +1,13 @@
-package org.yong.util.file.xml;
+package org.yong.util.file.xml.parser;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.yong.util.file.xml.XMLObject;
+import org.yong.util.file.xml.XMLParser;
 
 /**
  * @Author Huang.Yong
