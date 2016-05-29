@@ -80,8 +80,7 @@
 
 # `maven`依赖
 ```xml
-
-<!-- v 0.2 -->
+<!-- v1.1 -->
 <dependency>
     <groupId>commons-io</groupId>
     <artifactId>commons-io</artifactId>
@@ -92,9 +91,8 @@
     <artifactId>commons-lang3</artifactId>
     <version>3.4</version>
 </dependency>
-<!-- /v 0.2 -->
 
-<!-- /v 0.1 -->
+<!-- v1.1 -->
 <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
@@ -130,5 +128,4 @@
     <artifactId>slf4j-log4j12</artifactId>
     <version>1.7.6</version>
 </dependency>
-<!-- /v 0.1 -->
 ```
