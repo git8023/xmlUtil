@@ -31,7 +31,7 @@
       * 追加到标记节点之前
       ```Java
       // boolean XMLObject.appendBefore(XMLObject markerNode, boolean sameLevel)  
-      // markerNode必须与newNode是同名节点(<b>推荐</b>)  
+      // markerNode必须与newNode是同名节点(推荐)  
       boolean success = newNode.appendBefore(markerNode, true);  
       // markerNode可以是任意节点    
       boolean success = newNode.appendBefore(markerNode, false);  
@@ -39,7 +39,7 @@
       * 追加到标记节点之后
       ```Java
       // boolean XMLObject.appendAfter(XMLObject markerNode, boolean sameLevel)  
-      // markerNode必须与newNode是同名节点(<b>推荐</b>)  
+      // markerNode必须与newNode是同名节点(推荐)  
       boolean success = newNode.appendBefore(markerNode, true);  
       // markerNode可以是任意节点  
       boolean success = newNode.appendBefore(markerNode, false);  
