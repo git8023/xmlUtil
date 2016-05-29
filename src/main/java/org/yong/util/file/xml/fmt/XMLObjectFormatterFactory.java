@@ -4,7 +4,7 @@ import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.fmt.impl.DefaultXMLObjectFormatter;
 
 /**
- * @Author Huang.Yong
+ * @author Huang.Yong
  * @Description: {@link XMLObject}格式化工厂
  * @Date 2016年5月29日 上午10:42:34
  * @Version 0.1

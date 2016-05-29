@@ -3,7 +3,7 @@ package org.yong.util.file.xml.fmt;
 import org.yong.util.file.xml.XMLObject;
 
 /**
- * @Author Huang.Yong
+ * @author Huang.Yong
  * @Description: {@link XMLObject}格式化接口
  * @Date 2016年5月29日 上午10:44:06
  * @Version 0.1

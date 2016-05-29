@@ -19,7 +19,7 @@ import org.yong.util.file.xml.fmt.XMLObjectFormatter;
 import org.yong.util.file.xml.fmt.XMLObjectFormatterFactory;
 
 /**
- * @Author Huang.Yong
+ * @author Huang.Yong
  * @Description XML解析器, 注意:一个解析器只能绑定一个XML文件.
  * @Usage <pre>
  * // 获取解析器

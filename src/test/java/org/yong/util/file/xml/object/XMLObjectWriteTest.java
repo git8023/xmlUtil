@@ -73,7 +73,7 @@ public class XMLObjectWriteTest {
 		assertTrue(result);
 	}
 
-	// TODO 将当前节点添加到指定节点之前(外部)
+	// 将当前节点添加到指定节点之前(外部)
 	@Test
 	public void testAppendBefore() throws Exception {
 		// 创建节点

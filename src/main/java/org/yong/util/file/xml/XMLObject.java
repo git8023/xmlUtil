@@ -18,7 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
- * @Author Huang.Yong
+ * @author Huang.Yong
  * @Description: XML文件对象
  */
 public class XMLObject implements Serializable {

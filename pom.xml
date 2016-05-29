@@ -16,6 +16,19 @@
 	</properties>
 
 	<dependencies>
+        <!-- v 0.2 -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+        </dependency>
+        <!-- /v 0.2 -->
+        
 		<!-- /v 0.1 -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -53,19 +66,6 @@
 			<version>1.7.6</version>
 		</dependency>
 		<!-- /v 0.1 -->
-
-		<!-- v 0.2 -->
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.4</version>
-		</dependency>
-		<!-- /v 0.2 -->
 	</dependencies>
 
 	<build>

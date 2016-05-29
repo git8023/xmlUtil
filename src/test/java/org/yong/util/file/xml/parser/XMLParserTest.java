@@ -10,7 +10,7 @@ import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.XMLParser;
 
 /**
- * @Author Huang.Yong
+ * @author Huang.Yong
  * @Description: XML解析器测试
  * @Date 2016年5月26日 下午10:10:08
  * @Version 0.1
