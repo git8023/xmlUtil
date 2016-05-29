@@ -52,7 +52,7 @@
   * 获取`.xml`文件的绝对路径<br/>
   ```Java
   // 这里以`XMLParserTest`为例
-  String xmlPath = XMLParserTest.class.getResource("/xml-test-2.xml").getFile();<br/>
+  String xmlPath = XMLParserTest.class.getResource("/xml-test-2.xml").getFile();
   ```
   * 获取`XMLParser`对象. 一个`XMLParser`对象即代表一份被解析的`.xml`文件<br>
   ```Java
