@@ -47,9 +47,9 @@
   
   * 导出`XML`文件
   ```Java
-  // boolean XMLParser.transferRoot(XMLObject root, File outputFile, boolean compact) throws IOException
-  // 导出缩进排版的文件
-  String path = XMLParserTest2.class.getResource("/").getPath() + "xml-transfer2-retract.xml";
+	// boolean XMLParser.transferRoot(XMLObject root, File outputFile, boolean compact) throws IOException
+	// 导出缩进排版的文件
+	String path = XMLParserTest2.class.getResource("/").getPath() + "xml-transfer2-retract.xml";
 	boolean success = xmlParser.transferRoot(root, new File(path), false);
 	
 	// 导出紧凑格排版的文件
