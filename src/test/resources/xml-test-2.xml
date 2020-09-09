@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root version="1">
     aaa
-	<div ddd="asdsa">
-	   bbb
-	   <b attr="attr">ccc</b>
-	</div>
+    <div ddd="asdsa">
+        bbb
+        <b attr="attr">ccc</b>
+    </div>
 </root>

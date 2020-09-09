@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root version="1">
-	<type>
-		<child2>aaa</child2>
-	</type>
-	<type1></type1>
+    <type>
+        <child2>aaa</child2>
+    </type>
+    <type1></type1>
 </root>

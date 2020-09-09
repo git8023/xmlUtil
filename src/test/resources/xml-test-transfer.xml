@@ -2,7 +2,7 @@
 <root>
     <t1 attr="2">ctt1</t1>
     <t1>
-        <t2 attr="1" />
+        <t2 attr="1"/>
         <t2>ctt2</t2>
     </t1>
 </root>

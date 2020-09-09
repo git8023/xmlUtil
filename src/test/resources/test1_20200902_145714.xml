@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TourReport>
+    <TourTask taskName="test1" tourType="1" robotID="0000032"/>
+    <TourLine lineName="一体车"/>
+    <TourStationList>
+        <TourStation stationName="识别1" location="500" endLocation="500" speed="200">
+            <TourAction mountDvsType="1" actionName="默认动作名称" detectedDvsType="0">
+                <SensorInfo time="1599058642"/>
+            </TourAction>
+            <TourAction mountDvsType="3" actionName="仪表" detectedDvsType="0">
+                <SnapshotPosition arm1="0" arm2="90" arm3="0" arm4="0" arm5="0" arm6="0" zoom="1" thermal="1">
+                    <SnapshotSample image="仪表_20200902_145725.jpg" analysis="" time="1599058645"/>
+                </SnapshotPosition>
+            </TourAction>
+        </TourStation>
+
+
+        <TourStation stationName="识别2" location="500" endLocation="500" speed="200">
+            <TourAction mountDvsType="1" actionName="默认动作名称" detectedDvsType="0">
+                <SensorInfo time="1599058642"/>
+            </TourAction>
+            <TourAction mountDvsType="3" actionName="仪表" detectedDvsType="0">
+                <SnapshotPosition arm1="0" arm2="90" arm3="0" arm4="0" arm5="0" arm6="0" zoom="1" thermal="1">
+                    <SnapshotSample image="仪表_20200902_145725.jpg" analysis="" time="1599058645"/>
+                </SnapshotPosition>
+            </TourAction>
+        </TourStation>
+    </TourStationList>
+
+    <TourStatus taskName="test1" tourType="1" isAnalysis="0" robotID="0000032" robotName="0000032" beginTime="1599058634" endTime="1599058639" DetectedNum="1" TotalStationNum="1" status="4" statusParam="0" errCode="0"/>
+</TourReport>
