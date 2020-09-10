@@ -1,11 +1,6 @@
 # XML - Util
 简单封装 [`Apache dom4j(1.6.1)`](http://www.dom4j.org/dom4j-1.6.1/ "官方网站"), 封装后将使用面向对象的思维读写 XML 文件</br>.
 
-# 将XML-Util导入到项目中
-* [下载](https://github.com/git8023/xmlUtil/archive/master.zip "XML-Util")项目到本地
-* 解压后, 将文件夹`/release`下的`/xml-util-x.x-SNAPSHOT.jar`拷贝并`build`到项目中
-* 源码位于文件夹`/release`下的`xmlUtil-src-x.x.jar`
-
 # 版本
 * Version 1.2
     1. 新增实体类注解`@XmlTag`  
