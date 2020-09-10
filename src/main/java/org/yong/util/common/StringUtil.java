@@ -1,21 +1,21 @@
-package org.yong.util.string;
+package org.yong.util.common;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 字符串工具类
  */
+@Slf4j
 public final class StringUtil extends StringUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
-
     private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 
     private static final String WINDOWS_PREFIX = "windows";
@@ -171,7 +171,7 @@ public final class StringUtil extends StringUtils {
      */
     public static String getClassPath() throws Exception {
         URL resource = Thread.currentThread().getContextClassLoader().getResource("");
-        String basePath = resource.toURI().getPath();
+        String basePath = Objects.requireNonNull(resource).toURI().getPath();
         if (isWindowsSys()) {
             basePath = basePath.substring(1);
         }
@@ -214,20 +214,20 @@ public final class StringUtil extends StringUtils {
         try {
             classPath = getClassPath();
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return null;
         }
 
         boolean isRootPath = isStartSeparator(rPath);
         if (isWinSys) {
-            LOGGER.debug("The System of WINDOWS");
+            log.debug("The System of WINDOWS");
             rPath = rPath.replace(SEPARATOR_OF_UNIX_FILE, SEPARATOR_OF_WINDOWS_FILE);
-            while (isRootPath) {
+            if (isRootPath) {
                 rPath = rPath.substring(1);
             }
             return rPath.matches("[a-zA-Z][:][\\\\].+") ? rPath : (classPath + rPath);
         } else {
-            LOGGER.debug("The System of UNIX");
+            log.debug("The System of UNIX");
             rPath = rPath.replace(SEPARATOR_OF_WINDOWS_FILE, SEPARATOR_OF_UNIX_FILE);
             return (rPath.startsWith(classPath) ? rPath : (classPath + rPath));
         }
@@ -301,7 +301,7 @@ public final class StringUtil extends StringUtils {
      * 或0长度值, 或全空白字符值)
      */
     public static boolean isNumber(String target) {
-        final Pattern pattern = Pattern.compile("^[+-]?((\\d*(\\.\\d*)?[f|F|d|D]?)|(\\d+[l|L]?))$");
+        final Pattern pattern = Pattern.compile("^[+-]?((\\d*(\\.\\d*)?[fFdD]?)|(\\d+[lL]?))$");
         return !isEmpty(target, true) && pattern.matcher(target).matches();
     }
 
@@ -413,7 +413,7 @@ public final class StringUtil extends StringUtils {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn(e.getMessage(), e);
+            log.warn(e.getMessage(), e);
         }
 
         return null;
@@ -476,5 +476,21 @@ public final class StringUtil extends StringUtils {
         }
 
         return val;
+    }
+
+    /**
+     * 字符串转码
+     *
+     * @param s           源字符串
+     * @param fromCharset 当前编码
+     * @param toCharset   目标编码
+     * @return 转换后
+     */
+    public static String encode(String s, String fromCharset, String toCharset) {
+        try {
+            return new String(s.getBytes(fromCharset), toCharset);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,6 +1,5 @@
 # XML - Util
-简单封装 [`Apache dom4j(1.6.1)`](http://www.dom4j.org/dom4j-1.6.1/ "官方网站"), 封装后将使用面向对象的思维读写 XML 文件</br>
-关于 dom4j 的使用就不做过多介绍.<br/>
+简单封装 [`Apache dom4j(1.6.1)`](http://www.dom4j.org/dom4j-1.6.1/ "官方网站"), 封装后将使用面向对象的思维读写 XML 文件</br>.
 
 # 将XML-Util导入到项目中
 * [下载](https://github.com/git8023/xmlUtil/archive/master.zip "XML-Util")项目到本地
@@ -8,8 +7,62 @@
 * 源码位于文件夹`/release`下的`xmlUtil-src-x.x.jar`
 
 # 版本
-* v1.1 <b>new</b><br>
-  新增功能:<br>
+* Version 1.2
+    1. 新增实体类注解`@XmlTag`  
+       `@XmlTag`注解的实体类可以通过`XMLObject.toBean()`映射到实体类
+    2. 新增实体类字段注解`@XmlField`  
+       `@XmlField`注解的字段可以通过`XMLObject.toBean()`映射, 同时该注解具备子孙标签查询功能.
+    3. 新增转换接口`XMLObject.toBean(java.lang.Class)`
+       把当前`XML`节点映射到参数指定的实体类中, 实体类必须使用`@XmlTag`注解, 目标字段必须使用`@XmlField`注解.
+       组合自定义属性类也需要满足相同规则.
+    4. 新增转换接口`XMLObject.toBeans(java.lang.String, java.lang.Class)`
+       在当前节点中查找`子节点`并映射到`实体类`, 实体类规则同 `#toBean(java.lang.Class)`
+    5. 构造解析器`XMLParser`支持指定文件编码
+    6. 注解示例
+        ```java
+        // @XmlTag 建立TourAction和XMLObject映射关系 
+        @XmlTag
+        public class TourAction {
+        
+            @XmlField
+            // @XmlField(name = "mountDvsType", type = FieldType.ATTRIBUTE)
+            // 以上两种注解方式完全一致
+            private int mountDvsType;
+        
+            @XmlField
+            private String actionName;
+        
+            @XmlField
+            private int detectedDvsType;
+        
+            /*
+             * <TourAction mountDvsType="1" actionName="默认动作名称" detectedDvsType="0">
+             *     <SensorInfo time="1599058642"/>
+             * </TourAction>
+             * 通过 path&name 读取子孙节点属性(或标签体)的值
+             * path + name => TourAction.SensorInfo[time]
+             */
+            @XmlField(name = "time", type = FieldType.ATTRIBUTE, path = "SensorInfo")
+            private long sensorInfoTime;
+        
+            /*
+             * <SnapshotPosition arm1="0" arm2="90" arm3="0" arm4="0" arm5="0" arm6="0" zoom="1" thermal="1">
+             *     <SnapshotSample image="仪表_20200902_145725.jpg" analysis="" time="1599058645"/>
+             * </SnapshotPosition>
+             * 指明 snapshotPosition 数据来源是直接子标签, 具体映射方案由 SnapshotPosition 类的 @XmlTag & @XmlField 决定
+             */
+            @XmlField(type = FieldType.TAG)
+            private SnapshotPosition snapshotPosition;
+        }
+        ```
+
+    版本测试详情查看`XMLParserTest3`.   
+    下期更新计划:
+    1. 调用者支持自定义字符串转`Class<T>`任意类型接口.   
+       当前仅支持: JSONString->String, JSONString->JSONObject->Any  
+
+
+* Version 1.1  
   * 使用`XMLParser`创建新节点<br/>
   ```Java
   // XMLObject XMLParser.createNode(String tagName, String content, Map<String, String> attrs)
@@ -56,10 +109,10 @@
 	path = XMLParserTest2.class.getResource("/").getPath() + "xml-test-transfer2-compact.xml";
 	success = xmlParser.transferRoot(root, new File(path), true);
   ```
-* v1.0<br>
+* Version1.0   
   实现最基本的`XML`读取操作
 
-# 如何使用
+# 基础解析XML
 * 获取`XMLParser`对象
   * 获取`.xml`文件的绝对路径<br/>
   ```Java
@@ -77,55 +130,3 @@
   ```
   * 操作`XMLObject`实例对象来读取文件中的内容<br/>
   使用`XMLObject`实例对象可以获取`标签名`, `属性列表`, `子标签实例`, 等等...(API 详情请在`/doc/index.html`中查阅)
-
-# `maven`依赖
-```xml
-<!-- v1.1 -->
-<dependency>
-    <groupId>commons-io</groupId>
-    <artifactId>commons-io</artifactId>
-    <version>2.4</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-lang3</artifactId>
-    <version>3.4</version>
-</dependency>
-
-<!-- v1.0 -->
-<dependency>
-    <groupId>junit</groupId>
-    <artifactId>junit</artifactId>
-    <version>4.12</version>
-</dependency>
-<dependency>
-    <groupId>dom4j</groupId>
-    <artifactId>dom4j</artifactId>
-    <version>1.6.1</version>
-</dependency>
-<dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>12.0</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-collections4</artifactId>
-    <version>4.0</version>
-</dependency>
-<dependency>
-    <groupId>log4j</groupId>
-    <artifactId>log4j</artifactId>
-    <version>1.2.17</version>
-</dependency>
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>1.6.1</version>
-</dependency>
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-log4j12</artifactId>
-    <version>1.7.6</version>
-</dependency>
-```

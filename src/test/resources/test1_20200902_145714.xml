@@ -14,7 +14,6 @@
             </TourAction>
         </TourStation>
 
-
         <TourStation stationName="识别2" location="500" endLocation="500" speed="200">
             <TourAction mountDvsType="1" actionName="默认动作名称" detectedDvsType="0">
                 <SensorInfo time="1599058642"/>

@@ -7,7 +7,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.yong.util.file.xml.annotation.FieldType;
 import org.yong.util.file.xml.annotation.XmlField;
 import org.yong.util.file.xml.annotation.XmlTag;
-import org.yong.util.string.StringUtil;
+import org.yong.util.common.StringUtil;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -31,12 +31,12 @@ public class XMLObject implements Serializable {
     /**
      * 属性列表
      */
-    private Map<String, String> attrs = new HashMap<String, String>();
+    private Map<String, String> attrs = new HashMap<>();
 
     /**
      * 子标签集合, Key:tagName, Value:List&lt;XMLObject&gt;
      */
-    private Map<String, List<XMLObject>> childTags = new LinkedHashMap<String, List<XMLObject>>();
+    private Map<String, List<XMLObject>> childTags = new LinkedHashMap<>();
 
     /**
      * 标签文本内容
@@ -46,7 +46,7 @@ public class XMLObject implements Serializable {
     /**
      * 是否根节点
      */
-    private boolean isRoot;
+    private boolean rootElement;
 
     /**
      * 父级节点
@@ -102,11 +102,7 @@ public class XMLObject implements Serializable {
 
         // 验证是否已存在当前标签
         String tagName = xmlObject.tagName;
-        List<XMLObject> subTags = localSubTags.get(tagName);
-        if (subTags == null) {
-            subTags = new ArrayList<XMLObject>();
-            localSubTags.put(tagName, subTags);
-        }
+        List<XMLObject> subTags = localSubTags.computeIfAbsent(tagName, k -> new ArrayList<>());
 
         // 添加标签
         subTags.add(xmlObject);
@@ -196,70 +192,34 @@ public class XMLObject implements Serializable {
         return true;
     }
 
-    /**
-     * 追加到result中
-     *
-     * @param xmlObject    xml节点元素
-     * @param childTagName 目标节点名称
-     * @param result       用于保存节点列表
-     */
-    private void appendTag(XMLObject xmlObject, String childTagName, List<XMLObject> result) {
-        if (StringUtil.equalsTwo(xmlObject.getTagName(), childTagName)) {
-            result.add(xmlObject);
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof XMLObject)) return false;
+        XMLObject xmlObject = (XMLObject) o;
+        return rootElement == xmlObject.rootElement &&
+                Objects.equals(attrs, xmlObject.attrs) &&
+                Objects.equals(childTags, xmlObject.childTags) &&
+                Objects.equals(content, xmlObject.content) &&
+                Objects.equals(parent, xmlObject.parent) &&
+                tagName.equals(xmlObject.tagName);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        XMLObject other = (XMLObject) obj;
-        if (attrs == null) {
-            if (other.attrs != null)
-                return false;
-        } else if (!attrs.equals(other.attrs))
-            return false;
-        if (tagName == null) {
-            if (other.tagName != null)
-                return false;
-        } else if (!tagName.equals(other.tagName))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(attrs, childTags, content, rootElement, parent, tagName);
     }
 
-    /**
-     * 获取所有子节点
-     *
-     * @param xmlObject    节点对象
-     * @param childTagName 目标节点名称
-     * @param result       用于保存节点列表
-     */
-    private void getAllChild(XMLObject xmlObject, String childTagName, List<XMLObject> result) {
-        appendTag(xmlObject, childTagName, result);
-
-        // 验证是否还有后代元素
-        Map<String, List<XMLObject>> children = xmlObject.getChildTags();
-        if (0 >= children.size()) {
-            return;
-        }
-
-        // 遍历所有后代标签
-        for (Entry<String, List<XMLObject>> child : children.entrySet()) {
-            List<XMLObject> descendants = child.getValue();
-
-            if (0 >= descendants.size()) {
-                appendTag(xmlObject, childTagName, result);
-                continue;
-            }
-
-            for (XMLObject descendant : descendants) {
-                getAllChild(descendant, childTagName, result);
-            }
-        }
+    @Override
+    public String toString() {
+        return "XMLObject{" +
+                "attrs=" + attrs +
+                //", childTags=" + childTags +
+                ", content='" + content + '\'' +
+                ", isRoot=" + rootElement +
+                //", parent=" + parent +
+                ", tagName='" + tagName + '\'' +
+                '}';
     }
 
     /**
@@ -292,7 +252,7 @@ public class XMLObject implements Serializable {
      */
     public Map<String, String> getAttrs() {
         if (null == this.attrs) {
-            this.attrs = new HashMap<String, String>();
+            this.attrs = new HashMap<>();
         }
         return this.attrs;
     }
@@ -390,8 +350,7 @@ public class XMLObject implements Serializable {
 
         String subTagName = subTag.getTagName();
         List<XMLObject> list = getChildTags().get(subTagName);
-
-        return ((null != list) && (-1 != list.indexOf(subTag)));
+        return (null != list) && list.contains(subTag);
     }
 
     /**
@@ -454,22 +413,93 @@ public class XMLObject implements Serializable {
     }
 
     /**
-     * 校验当前节点是否漂浮状态(只能代表当前节点, 而不能代表其上级节点是否也是漂浮状态)
-     *
-     * @return boolean true-漂浮状态, false-不是漂浮状态
-     */
-    private boolean isFloating() {
-        // 不是根节点, 并且没有相应的父节点时
-        return !this.isRoot() && null == this.getParent();
-    }
-
-    /**
      * 校验当前节点是否根节点
      *
      * @return boolean true-根节点, false-不是根节点
      */
-    public boolean isRoot() {
-        return isRoot;
+    public boolean isRootElement() {
+        return rootElement;
+    }
+
+    /**
+     * 设置标签文本内容
+     *
+     * @param content 标签存文本内容
+     */
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    /**
+     * 设置当前标签名
+     *
+     * @param tagName 当前标签名
+     */
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
+    }
+
+    /**
+     * 验证当前节点是否有效
+     *
+     * @return boolean true-有效节点, false-无效节点
+     */
+    public boolean valid() {
+        return StringUtil.isNotEmpty(this.tagName, true);
+    }
+
+    /**
+     * 映射为实体类
+     *
+     * @param cls 实体类字节码
+     * @param <T> 实体类泛型
+     * @return 实体类对象
+     */
+    public <T> T toBean(Class<T> cls) {
+        validExpectTagName(cls);
+
+        T bean;
+        try {
+            bean = cls.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // 填充一级属性
+        // 私有属性
+        List<Field> fields = Lists.newArrayList(Arrays.asList(cls.getFields()));
+        fields.addAll(Arrays.asList(cls.getDeclaredFields()));
+        for (Field field : fields) {
+
+            // 不处理 final/static 修饰属性
+            int modifiers = field.getModifiers();
+            if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers))
+                continue;
+
+            setValue(bean, field);
+        }
+
+        return bean;
+    }
+
+    /**
+     * 指定控件解析为列表
+     *
+     * @param childTagName 子标签名
+     * @param cls          实体类字节码
+     * @param <T>          实体类类型
+     * @return 实体类列表
+     */
+    public <T> List<T> toBeans(String childTagName, Class<T> cls) {
+        List<T> beans = Lists.newArrayList();
+
+        List<XMLObject> children = getAllChildTags(childTagName);
+        for (XMLObject xmlObject : children) {
+            T bean = xmlObject.toBean(cls);
+            beans.add(bean);
+        }
+
+        return beans;
     }
 
     /**
@@ -483,19 +513,65 @@ public class XMLObject implements Serializable {
     }
 
     /**
-     * 设置标签文本内容
+     * 校验当前节点是否漂浮状态(只能代表当前节点, 而不能代表其上级节点是否也是漂浮状态)
      *
-     * @param content 标签存文本内容
+     * @return boolean true-漂浮状态, false-不是漂浮状态
      */
-    public void setContent(String content) {
-        this.content = content;
+    private boolean isFloating() {
+        // 不是根节点, 并且没有相应的父节点时
+        return !this.isRootElement() && null == this.getParent();
     }
+
+    /**
+     * 追加到result中
+     *
+     * @param xmlObject    xml节点元素
+     * @param childTagName 目标节点名称
+     * @param result       用于保存节点列表
+     */
+    private void appendTag(XMLObject xmlObject, String childTagName, List<XMLObject> result) {
+        if (StringUtil.equalsTwo(xmlObject.getTagName(), childTagName)) {
+            result.add(xmlObject);
+        }
+    }
+
+    /**
+     * 获取所有子节点
+     *
+     * @param xmlObject    节点对象
+     * @param childTagName 目标节点名称
+     * @param result       用于保存节点列表
+     */
+    private void getAllChild(XMLObject xmlObject, String childTagName, List<XMLObject> result) {
+        appendTag(xmlObject, childTagName, result);
+
+        // 验证是否还有后代元素
+        Map<String, List<XMLObject>> children = xmlObject.getChildTags();
+        if (0 >= children.size()) {
+            return;
+        }
+
+        // 遍历所有后代标签
+        for (Entry<String, List<XMLObject>> child : children.entrySet()) {
+            List<XMLObject> descendants = child.getValue();
+
+            if (0 >= descendants.size()) {
+                appendTag(xmlObject, childTagName, result);
+                continue;
+            }
+
+            for (XMLObject descendant : descendants) {
+                getAllChild(descendant, childTagName, result);
+            }
+        }
+    }
+
 
     /**
      * 从父节点中将当前节点移出
      */
     private void setFloating() {
-        if (this.isRoot()) {
+        if (this.isRootElement()) {
             throw new RuntimeException("Cann't delete root element");
         }
 
@@ -534,27 +610,10 @@ public class XMLObject implements Serializable {
      *
      * @param isRoot true-根节点, false-叶子节点
      */
-    void setRoot(boolean isRoot) {
-        this.isRoot = isRoot;
+    void setRootElement(boolean isRoot) {
+        this.rootElement = isRoot;
     }
 
-    /**
-     * 设置当前标签名
-     *
-     * @param tagName 当前标签名
-     */
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    /**
-     * 验证当前节点是否有效
-     *
-     * @return boolean true-有效节点, false-无效节点
-     */
-    public boolean valid() {
-        return StringUtil.isNotEmpty(this.tagName, true);
-    }
 
     /**
      * 编辑节点前结构验证, 当前节点不是root节点且父节点不是漂浮状态
@@ -566,7 +625,7 @@ public class XMLObject implements Serializable {
         if (!valid()) {
             log.debug("The current node is invalid");
             return false;
-        } else if (this.isRoot()) {
+        } else if (this.isRootElement()) {
             log.debug("The current node cann't is root element");
             return false;
         }
@@ -596,13 +655,13 @@ public class XMLObject implements Serializable {
         }
 
         // 当前节点不能是根节点
-        if (this.isRoot()) {
+        if (this.isRootElement()) {
             log.debug("The current node cann't is root node");
             return false;
         }
 
         // 标记节点不能是根节点, 且不能为漂浮状态
-        if (markerNode.isRoot()) {
+        if (markerNode.isRootElement()) {
             log.debug("The marker node cann't is root node");
             return false;
         } else if (markerNode.isFloating()) {
@@ -611,61 +670,6 @@ public class XMLObject implements Serializable {
         }
 
         return true;
-    }
-
-    @Override
-    public String toString() {
-        return "XMLObject{" +
-                "attrs=" + attrs +
-                //", childTags=" + childTags +
-                ", content='" + content + '\'' +
-                ", isRoot=" + isRoot +
-                //", parent=" + parent +
-                ", tagName='" + tagName + '\'' +
-                '}';
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((attrs == null) ? 0 : attrs.hashCode());
-        result = prime * result + ((tagName == null) ? 0 : tagName.hashCode());
-        return result;
-    }
-
-    /**
-     * 映射为实体类
-     *
-     * @param cls 实体类字节码
-     * @param <T> 实体类泛型
-     * @return 实体类对象
-     */
-    public <T> T toBean(Class<T> cls) {
-        validExpectTagName(cls);
-
-        T bean;
-        try {
-            bean = cls.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        // 填充一级属性
-        // 私有属性
-        List<Field> fields = Lists.newArrayList(Arrays.asList(cls.getFields()));
-        fields.addAll(Arrays.asList(cls.getDeclaredFields()));
-        for (Field field : fields) {
-
-            // 不处理 final/static 修饰属性
-            int modifiers = field.getModifiers();
-            if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers))
-                continue;
-
-            setValue(bean, field);
-        }
-
-        return bean;
     }
 
     /**
@@ -681,15 +685,18 @@ public class XMLObject implements Serializable {
         if (null == xmlField)
             return;
 
-        String name = StringUtil.defaultIfBlank(xmlField.name(), field.getName());
+        String name = getTargetTagName(xmlField, field.getName());
         FieldType type = xmlField.type();
         try {
             switch (type) {
 
                 // 属性直接映射
                 case ATTRIBUTE:
-                    String attr = getAttr(name);
-                    Reflects.setJsonValue(bean, field, attr);
+                    XMLObject target = parseFieldPath(xmlField);
+                    if (null != target) {
+                        String attr = target.getAttr(name);
+                        Reflects.setJsonValue(bean, field, attr);
+                    }
                     break;
 
                 // 子标签
@@ -709,81 +716,182 @@ public class XMLObject implements Serializable {
      * @param field    字段对象
      * @param xmlField XML字段映射注解
      */
-    private void setValueByTag(Object bean, Field field, XmlField xmlField) throws IllegalAccessException {
+    private void setValueByTag(Object bean, Field field, XmlField xmlField) throws Exception {
         Class<?> fieldType = field.getType();
         field.setAccessible(true);
 
-        // 简单对象
-        if (Reflects.isSimpleType(fieldType)) {
-            String childTagName = StringUtil.defaultIfBlank(xmlField.name(), fieldType.getSimpleName());
-            List<XMLObject> children = getChildTags(childTagName);
-            if (1 < children.size()) {
-                throw new RuntimeException("期望唯一子标签[" + childTagName + "]实际找到[" + children.size() + "]条");
-            } else if (1 == children.size()) {
-                XMLObject firstChildTag = children.get(0);
-                Reflects.setJsonValue(bean, field, firstChildTag.content);
-            }
+        // 支持 path + hierarchy 寻路
+        XMLObject target = parseFieldPath(xmlField);
+        if (null == target)
             return;
+
+        if (trySimpleValueByTag(bean, field, target)
+                || tryCollectionOrArray(bean, field)
+                || tryCustomType(bean, field)) {
         }
+    }
+
+    /**
+     * 尝试自定义类型
+     *
+     * @param bean  数据对象
+     * @param field 字段对象
+     * @return 成功处理返回true, 否则返回false(需要其他方式处理)
+     */
+    private boolean tryCustomType(Object bean, Field field) throws IllegalAccessException {
+
+        XmlField xmlField = field.getAnnotation(XmlField.class);
+        Class<?> fieldType = field.getType();
+        // 自定义类型
+        if (!fieldType.isAnnotationPresent(XmlTag.class))
+            return false;
+
+        // 复合属性只能解析唯一的子标签
+        // 如果标签出现多个证明实体类属性类型定义错误
+        String childTagName = getTargetTagName(xmlField, fieldType.getSimpleName());
+        List<XMLObject> children = getChildTags(childTagName);
+        if (1 < children.size())
+            throw new RuntimeException("期望唯一子标签[" + childTagName + "]实际找到[" + children.size() + "]条");
+
+        if (1 == children.size()) {
+            XMLObject firstChildTag = children.get(0);
+            Object val = firstChildTag.toBean(fieldType);
+            field.set(bean, val);
+        }
+
+        return true;
+    }
+
+    /**
+     * 尝试设置列表或者数组
+     *
+     * @param bean  数据对象
+     * @param field 字段对象
+     * @return 成功处理返回true, 否则返回false(需要其他方式处理)
+     */
+    private boolean tryCollectionOrArray(Object bean, Field field) throws IllegalAccessException {
+        XmlField xmlField = field.getAnnotation(XmlField.class);
+        Class<?> fieldType = field.getType();
 
         // 列表&数组
         Reflects.CollectionType collectionType = Reflects.isCollection(fieldType);
-        if (null != collectionType) {
+        if (null == collectionType)
+            return false;
 
-            // List & Set
-            if (Reflects.CollectionType.LIST == collectionType || Reflects.CollectionType.SET == collectionType) {
+        // List & Set
+        if (Reflects.CollectionType.LIST == collectionType || Reflects.CollectionType.SET == collectionType) {
 
-                // 获取泛型类型
-                // 如果没有泛型不设置当前值
-                Type genericType = field.getGenericType();
-                if (genericType instanceof ParameterizedType) {
+            // 获取泛型类型
+            // 如果没有泛型不设置当前值
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType) {
 
-                    // 泛型类型必须被 XmlTag 注解, 否则不予解析
-                    ParameterizedType pt = (ParameterizedType) genericType;
-                    Class<?> type = (Class<?>) pt.getActualTypeArguments()[0];
-                    if (!type.isAnnotationPresent(XmlTag.class)) {
-                        log.warn("检查集合泛型类型[" + type.getName() + "]是否添加 @XmlTag 注解");
-                        return;
-                    }
+                // 泛型类型必须被 XmlTag 注解, 否则不予解析
+                ParameterizedType pt = (ParameterizedType) genericType;
+                Class<?> type = (Class<?>) pt.getActualTypeArguments()[0];
+                if (!type.isAnnotationPresent(XmlTag.class)) {
+                    log.warn("请检查泛型类型[" + type.getName() + "]是否添加 @XmlTag 注解");
+                    return true;
+                }
 
-                    String childTagName = StringUtil.defaultIfBlank(xmlField.name(), type.getSimpleName());
-                    List<?> val = toBeans(childTagName, type);
+                String childTagName = getTargetTagName(xmlField, type.getSimpleName());
+                List<?> val = toBeans(childTagName, type);
 
-                    // 如果目标集合是Set集合, 从List集合转
-                    if (Reflects.CollectionType.SET == collectionType)
-                        field.set(bean, new TreeSet<>(val));
-                    else
-                        field.set(bean, val);
+                // 如果目标集合是Set集合, 从List集合转
+                if (Reflects.CollectionType.SET == collectionType)
+                    field.set(bean, new LinkedHashSet<>(val));
+                else
+                    field.set(bean, val);
+            }
+            return true;
+        }
+
+        // Array
+        if (Reflects.CollectionType.ARRAY == collectionType) {
+            Class<?> type = fieldType.getComponentType();
+            String childTagName = StringUtil.defaultString(xmlField.name(), type.getSimpleName());
+            List<?> val = toBeans(childTagName, type);
+            field.set(bean, val.toArray());
+        }
+        return true;
+    }
+
+    /**
+     * 获取属性映射的目标标签或属性名称
+     *
+     * @param xmlField    映射注解
+     * @param defaultName 默认名称
+     * @return 映射名称
+     */
+    private String getTargetTagName(XmlField xmlField, String defaultName) {
+        return StringUtil.defaultIfBlank(xmlField.name(), defaultName);
+    }
+
+    /**
+     * 使用子标签设置简单值
+     *
+     * @param bean   数据对象
+     * @param field  字段对象
+     * @param target 目标标签
+     * @return 成功处理返回true, 否则返回false(需要其他方式处理)
+     */
+    private boolean trySimpleValueByTag(Object bean, Field field, XMLObject target) throws Exception {
+        Class<?> fieldType = field.getType();
+        XmlField xmlField = field.getAnnotation(XmlField.class);
+
+        // 只处理简单对象
+        if (!Reflects.isSimpleType(fieldType))
+            return false;
+
+        // 子节点个数检查
+        String childTagName = getTargetTagName(xmlField, fieldType.getSimpleName());
+        List<XMLObject> children = target.getChildTags(childTagName);
+
+        if (1 < children.size())
+            throw new RuntimeException("期望唯一子标签[" + childTagName + "]实际找到[" + children.size() + "]条");
+
+        if (1 == children.size()) {
+            XMLObject firstChildTag = children.get(0);
+            String val = firstChildTag.content;
+            Reflects.setJsonValue(bean, field, val);
+        }
+        return true;
+    }
+
+    /**
+     * 解析字段路径配置
+     *
+     * @param xmlField 字段配置
+     * @return 目标XML节点
+     */
+    private XMLObject parseFieldPath(XmlField xmlField) {
+        String[] path = xmlField.path();
+        XMLObject target = this;
+
+        List<String> rightPaths = new ArrayList<>();
+        for (String node : path) {
+            int tagIndex = 0;
+            String[] split = node.split("\\[");
+            if (2 < split.length) {
+                log.info("成功解析路径: " + rightPaths);
+                throw new RuntimeException("无效的子标签索引规则: " + node + ", 最多支持一维数组索引.");
+            }
+
+            if (2 == split.length) {
+                node = split[0];
+                String indexStr = split[1].substring(0, split[1].length() - 2);
+                try {
+                    tagIndex = Integer.parseInt(indexStr);
+                } catch (NumberFormatException e) {
+                    log.info("成功解析路径: " + rightPaths);
+                    throw new RuntimeException("索引下标[" + indexStr + "]解析失败不能转化为数字", e);
                 }
             }
 
-            // Array
-            else if (Reflects.CollectionType.ARRAY == collectionType) {
-                Class<?> type = fieldType.getComponentType();
-                String childTagName = StringUtil.defaultString(xmlField.name(), type.getSimpleName());
-                List<?> val = toBeans(childTagName, type);
-                field.set(bean, val.toArray());
-            }
-
-            return;
+            rightPaths.add(node);
+            target = target.getChildTag(node, tagIndex);
         }
-
-        // 组合复杂属性
-        if (fieldType.isAnnotationPresent(XmlTag.class)) {
-
-            // 复合属性只能解析唯一的子标签
-            // 如果标签出现多个证明实体类属性类型定义错误
-            String childTagName = StringUtil.defaultIfBlank(xmlField.name(), fieldType.getSimpleName());
-            List<XMLObject> children = getChildTags(childTagName);
-            if (1 < children.size()) {
-                throw new RuntimeException("期望唯一子标签[" + childTagName + "]实际找到[" + children.size() + "]条");
-            } else if (1 == children.size()) {
-                XMLObject firstChildTag = children.get(0);
-                Object val = firstChildTag.toBean(fieldType);
-                field.set(bean, val);
-            }
-
-        }
+        return target;
     }
 
     /**
@@ -803,23 +911,4 @@ public class XMLObject implements Serializable {
         }
     }
 
-    /**
-     * 指定控件解析为列表
-     *
-     * @param childTagName 子标签名
-     * @param cls          实体类字节码
-     * @param <T>          实体类类型
-     * @return 实体类列表
-     */
-    public <T> List<T> toBeans(String childTagName, Class<T> cls) {
-        List<T> beans = Lists.newArrayList();
-
-        List<XMLObject> children = getAllChildTags(childTagName);
-        for (XMLObject xmlObject : children) {
-            T bean = xmlObject.toBean(cls);
-            beans.add(bean);
-        }
-
-        return beans;
-    }
 }

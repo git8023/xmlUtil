@@ -1,14 +1,14 @@
 package org.yong.util.file.xml.fmt.impl;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.fmt.XMLObjectFormatter;
-import org.yong.util.string.StringUtil;
+import org.yong.util.common.StringUtil;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
 

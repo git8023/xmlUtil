@@ -26,8 +26,17 @@ public class Reflects {
     }
 
     public enum CollectionType {
+        /**
+         * 数组
+         */
         ARRAY,
+        /**
+         * List列表
+         */
         LIST,
+        /**
+         * Set集合
+         */
         SET
     }
 
@@ -45,6 +54,8 @@ public class Reflects {
 
         // 默认为字符串值
         Object val = jsonStr;
+        if (null == val)
+            return;
 
         // 非字符串需要JSON解析
         Class<?> type = field.getType();

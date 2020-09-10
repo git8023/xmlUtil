@@ -1,27 +1,20 @@
 package org.yong.util.file.xml;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.dom4j.*;
+import org.dom4j.io.SAXReader;
+import org.yong.util.file.FileUtil;
+import org.yong.util.file.xml.fmt.XMLObjectFormatter;
+import org.yong.util.file.xml.fmt.XMLObjectFormatterFactory;
+
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.dom4j.Attribute;
-import org.dom4j.Comment;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yong.util.file.xml.fmt.XMLObjectFormatter;
-import org.yong.util.file.xml.fmt.XMLObjectFormatterFactory;
-
 /**
- * @author Huang.Yong
  * XML解析器, 注意:一个解析器只能绑定一个XML文件.
  *
  * <pre>
@@ -32,21 +25,17 @@ import org.yong.util.file.xml.fmt.XMLObjectFormatterFactory;
  * // 解析完成后将通过 {@link XMLObject} 节点对象获取属性和标签体
  * XMLObject root = xmlParser.parse();
  * </pre>
+ *
+ * @author Huang.Yong
  * @see XMLObject
  */
+@Slf4j
 public class XMLParser {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     /**
      * XML 文件路径
      */
     private final String path;
-
-    /**
-     * 是否已经包含重复标签
-     */
-    private Boolean hasDuplicateSubTag = null;
 
     /**
      * 文件编码, 默认使用 UTF-8
@@ -56,33 +45,31 @@ public class XMLParser {
     /**
      * 构建XML解析器
      *
-     * @param path 文件路径, 绝对路径
+     * @param path 文件路径
      */
     public XMLParser(String path) {
         this(path, StandardCharsets.UTF_8);
     }
 
+    /**
+     * 构建XML解析器
+     *
+     * @param path         文件路径
+     * @param fileEncoding 文件编码
+     */
     public XMLParser(String path, String fileEncoding) {
         this.path = path;
         this.fileEncoding = fileEncoding;
     }
 
+    /**
+     * 构建XML解析器
+     *
+     * @param path         文件路径
+     * @param fileEncoding 文件编码
+     */
     public XMLParser(String path, Charset fileEncoding) {
         this(path, fileEncoding.name());
-    }
-
-    /**
-     * 获取当前XML文件是否已经包含重复标签
-     *
-     * @return Boolean
-     * <ul>
-     * <li>true-已经包含</li>
-     * <li>false-未包含</li>
-     * <li>null-未检测(当<i>allowDuplicateSubTag=true</i>时总是返回<i>null</i>)</li>
-     * </ul>
-     */
-    public Boolean hasDuplicateSubTag() {
-        return hasDuplicateSubTag;
     }
 
     /**
@@ -94,7 +81,7 @@ public class XMLParser {
      *               <li>当前解析器不解析注释内容</li>
      *               </ul>
      *
-     *               <pre>
+     * <pre>
      * &lt;root&gt;
      *   tag content
      *   &lt;tag&gt;
@@ -110,7 +97,7 @@ public class XMLParser {
      *
      * @return XMLObject XML对象
      */
-    public XMLObject parse() throws MalformedURLException, DocumentException {
+    public XMLObject parse() throws Exception {
         Document document = getDocument();
 
         // 获取根节点名称
@@ -120,7 +107,7 @@ public class XMLParser {
         // 构建 XMLObject 对象
         XMLObject xmlObject = new XMLObject(tagName);
         xmlObject.setParent(null);
-        xmlObject.setRoot(Boolean.TRUE);
+        xmlObject.setRootElement(Boolean.TRUE);
 
         // 解析XML
         parseNode(xmlObject, rootElement);
@@ -136,24 +123,19 @@ public class XMLParser {
     private void parseNode(XMLObject xmlObject, Element node) {
         for (int i = 0, size = node.nodeCount(); i < size; i++) {
             Node subNode = node.node(i);
-            XMLObject subXmlObject = null;
+            if (subNode instanceof Comment) {
+                continue;
+            }
+
+            XMLObject subXmlObject;
             if (subNode instanceof Element) {
                 subXmlObject = appendSubTag(xmlObject, subNode);
                 parseNode(subXmlObject, (Element) subNode);
                 subXmlObject.setParent(xmlObject);
             }
-
-            if (subNode instanceof Comment) {
-                continue;
-            }
         }
 
         setAttrsAndContent(xmlObject, node);
-
-        // 根据策略去除重复标签
-        // if (null == allowDuplicateSubTag || !allowDuplicateSubTag) {
-        // filterDuplicateSubTags(xmlObject);
-        // }
     }
 
     /**
@@ -230,7 +212,7 @@ public class XMLParser {
      *
      * @return Document 根节点
      */
-    private Document getDocument() throws MalformedURLException, DocumentException {
+    private Document getDocument() throws Exception {
         SAXReader saxReader = new SAXReader();
         saxReader.setEncoding(fileEncoding);
         File file = getXMLFile();
@@ -257,26 +239,24 @@ public class XMLParser {
      * @param compact    true-紧凑排版, false-缩进排版
      * @return boolean true-转换成功, false-转换失败
      */
-    public boolean transferRoot(XMLObject root, File outputFile, boolean compact) throws IOException {
+    public boolean transfer(XMLObject root, File outputFile, boolean compact) throws IOException {
         // root校验
-        if (null == root || !root.isRoot()) {
-            LOGGER.debug("The target node is invald root element");
+        if (null == root || !root.isRootElement()) {
+            log.debug("指定节点不是有效根节点");
             return false;
         }
 
-        // 输出文件校验
-        if (null == outputFile) {
-            LOGGER.debug("The target output file is invalid");
+        // 后缀检测
+        if (!outputFile.getName().endsWith(".xml")) {
+            log.debug("输出文件不是.xml文件");
             return false;
-        } else if (!outputFile.exists()) {
-            LOGGER.debug("The target output file is not exist, will create it");
-            File parent = outputFile.getParentFile();
-            if (!parent.exists()) {
-                parent.mkdirs();
-            }
-            // outputFile.createNewFile();
-        } else {
-            LOGGER.warn("The target output file is not empty, will clean it");
+        }
+        FileUtil.createFile(outputFile);
+
+        // 类型检测
+        if (!outputFile.isFile()) {
+            log.debug("outputFile 不是文件类型");
+            return false;
         }
 
         // 格式化输出
@@ -288,7 +268,6 @@ public class XMLParser {
 
         // 将格式化内容写入文件
         FileUtils.write(outputFile, content, false);
-
         return true;
     }
 

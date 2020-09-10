@@ -26,35 +26,7 @@ public @interface XmlField {
     FieldType type() default FieldType.ATTRIBUTE;
 
     /**
-     * 指明 {@link #path() path} 元素层级关系
-     * <pre>
-     * &lt;root>
-     *   &lt;first attr="f_1" />
-     *   &lt;first attr="f_2">
-     *     &lt;second target_attr="sec_1">
-     *   &lt;/first>
-     * &lt;/root>
-     *
-     * // 当前标签: root
-     * //    目标: second 标签的(attr)属性值设置到 secondAttrVal
-     * {@code @XmlField(
-     *            name="target_attr",
-     *            path={"first[1]", "second"},
-     *            hierarchyTypes={PathRelation.CHILDREN, PathRelation.CHILDREN}
-     *        )}
-     * private String secondAttrVal;
-     * </pre>
-     * <p>
-     * 此属性需要 {@link #path() path} 配合使用, 配置长度必须与 {@link #path() path} 一致.
-     *
-     * FIXME 逻辑未支持 hierarchy
+     * 设置路径会在解析 {@link #name() name} 之前跳转到指定子标签.
      */
-    PathRelation[] hierarchy() default PathRelation.CURRENT;
-
-    /**
-     * 设置路径会在解析 {@link #name() name} 之前跳转到指定路径.
-     * <br>此属性需要 {@link #hierarchy() hierarchy} 配合使用, 元素个数必须和 {@link #hierarchy() hierarchy} 一致.
-     * FIXME 逻辑未支持 path
-     */
-    String[] path() default "";
+    String[] path() default {};
 }

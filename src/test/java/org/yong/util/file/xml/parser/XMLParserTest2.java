@@ -30,10 +30,14 @@ public class XMLParserTest2 {
         Map<String, List<XMLObject>> childTags = root.getChildTags();
         assertEquals(1, childTags.size());
 
-        String path = XMLParserTest2.class.getResource("/").getPath() + "xml-test-transfer2-compact.xml";
-        xmlParser.transferRoot(root, new File(path), true);
+        String path = XMLParserTest2.class.getResource("/").getPath() + "/xml-test-transfer2-compact.xml";
+        File compactFile = new File(path);
+        System.out.println(compactFile);
+        xmlParser.transfer(root, compactFile, true);
 
-        path = XMLParserTest2.class.getResource("/").getPath() + "xml-test-transfer2-retract.xml";
-        xmlParser.transferRoot(root, new File(path), false);
+        path = XMLParserTest2.class.getResource("/").getPath() + "/xml-test-transfer2-retract.xml";
+        File retractFile = new File(path);
+        System.out.println(retractFile);
+        xmlParser.transfer(root, retractFile, false);
     }
 }
