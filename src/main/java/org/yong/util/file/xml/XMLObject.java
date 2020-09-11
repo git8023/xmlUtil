@@ -2,18 +2,18 @@ package org.yong.util.file.xml;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.yong.util.common.StringUtil;
 import org.yong.util.file.xml.annotation.FieldType;
 import org.yong.util.file.xml.annotation.XmlField;
 import org.yong.util.file.xml.annotation.XmlTag;
-import org.yong.util.common.StringUtil;
 import org.yong.util.file.xml.parser.FieldValueParserFactory;
 import org.yong.util.file.xml.parser.iface.SimpleValueParser;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -25,6 +25,7 @@ import java.util.Map.Entry;
  * @author Huang.Yong
  */
 @Slf4j
+@Data
 public class XMLObject implements Serializable {
 
     // @Fields serialVersionUID :
@@ -85,6 +86,75 @@ public class XMLObject implements Serializable {
     }
 
     /**
+     * 指定对象转换为XMLObject数据, 目标对象必须使用{@link XmlTag @XmlTag}注解
+     *
+     * @param data 目标对象
+     * @param <T>  对象类型
+     * @return XMLObject实体, 目标对象为null时总是返回null
+     */
+    public static <T> XMLObject of(T data) {
+        if (null == data)
+            return null;
+
+        Class<?> type = data.getClass();
+        XmlTag xmlTag = type.getAnnotation(XmlTag.class);
+        if (null == xmlTag)
+            throw new UnsupportedOperationException("实体类[" + type.toString() + "]没有被标记为 @XmlTag");
+
+        // 一级属性
+        String tagName = StringUtil.defaultIfBlank(xmlTag.value(), type.getSimpleName());
+        XMLObject xmlObject = new XMLObject(tagName);
+        List<Field> fields = Reflects.getFields(type);
+        for (Field field : fields) {
+
+            // 不处理静态和常量
+            if (Reflects.isStaticOrFinal(field))
+                continue;
+
+            // 获取字段相关数据
+            // @XmlField注解
+            XmlField xmlField = field.getAnnotation(XmlField.class);
+            if (null == xmlField)
+                continue;
+
+            // 字段XML映射名称
+            Class<?> fieldType = field.getType();
+            String fieldName = StringUtil.defaultIfBlank(xmlField.name(), field.getName());
+
+            // 获取字段值
+            Object fieldValue;
+            try {
+                field.setAccessible(true);
+                fieldValue = field.get(data);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            FieldType fieldXmlType = xmlField.type();
+            if (FieldType.ATTRIBUTE == fieldXmlType) {
+                SimpleValueParser<?> parser = FieldValueParserFactory.getFactory(fieldType);
+                String xmlValue = parser.fromBean(fieldValue);
+                xmlObject.attrs.put(fieldName, xmlValue);
+                continue;
+            }
+
+            if (FieldType.TAG == fieldXmlType) {
+                XmlTag fieldTypeXmlTag = fieldType.getAnnotation(XmlTag.class);
+                String childTagName = StringUtil.defaultIfBlank(fieldTypeXmlTag.value(), fieldType.getSimpleName());
+                List<XMLObject> children = xmlObject.childTags.computeIfAbsent(childTagName, k -> new ArrayList<>());
+
+                if (null != fieldValue) {
+                    XMLObject childTag = of(fieldValue);
+                    children.add(childTag);
+                }
+            }
+
+        }
+
+        return xmlObject;
+    }
+
+    /**
      * 添加标签属性
      *
      * @param attrName  属性名
@@ -126,8 +196,8 @@ public class XMLObject implements Serializable {
         }
 
         // 同级元素验证
-        if (sameLevel && !sameTagName(markerNode)) {
-            log.debug("The marker node name must be the same as current node name");
+        if (sameLevel && !StringUtil.equals(tagName, markerNode.tagName)) {
+            log.debug("标记节点必须和当前节点同名!");
             return false;
         }
 
@@ -168,8 +238,8 @@ public class XMLObject implements Serializable {
         }
 
         // 当前节点和标记节点必须是同名节点
-        if (sameLevel && !sameTagName(markerNode)) {
-            log.debug("The marker node name must be the same as current node name");
+        if (sameLevel && !StringUtil.equals(tagName, markerNode.tagName)) {
+            log.debug("标记节点必须和当前节点同名!");
             return false;
         }
 
@@ -210,18 +280,6 @@ public class XMLObject implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(attrs, childTags, content, rootElement, parent, tagName);
-    }
-
-    @Override
-    public String toString() {
-        return "XMLObject{" +
-                "attrs=" + attrs +
-                //", childTags=" + childTags +
-                ", content='" + content + '\'' +
-                ", isRoot=" + rootElement +
-                //", parent=" + parent +
-                ", tagName='" + tagName + '\'' +
-                '}';
     }
 
     /**
@@ -294,39 +352,7 @@ public class XMLObject implements Serializable {
      * @return List&lt;XMLObject&gt; 当前标签包含的所有子标签, 总是返回合法的列表对象
      */
     public List<XMLObject> getChildTags(String tagName) {
-        List<XMLObject> result = getChildTags().get(tagName);
-        if (null == result) {
-            result = Lists.newArrayList();
-            getChildTags().put(tagName, result);
-        }
-        return result;
-    }
-
-    /**
-     * 获取当前标签文本内容
-     *
-     * @return String 存文本内容
-     */
-    public String getContent() {
-        return content;
-    }
-
-    /**
-     * 获取当前节点父节点
-     *
-     * @return XMLObject 父节点对象
-     */
-    public XMLObject getParent() {
-        return parent;
-    }
-
-    /**
-     * 获取当前标签名
-     *
-     * @return String 标签名
-     */
-    public String getTagName() {
-        return tagName;
+        return getChildTags().computeIfAbsent(tagName, k -> Lists.newArrayList());
     }
 
     /**
@@ -363,10 +389,8 @@ public class XMLObject implements Serializable {
      */
     public boolean insertAfter(XMLObject parentNode) {
         boolean valid = validationInnerEdit(parentNode);
-        if (!valid) {
-            log.warn("validation failed at before append");
+        if (!valid)
             return false;
-        }
 
         // 从原有的父节点中移出当前节点
         this.setFloating();
@@ -397,57 +421,21 @@ public class XMLObject implements Serializable {
 
         // 获取目标父节点的子节点集合,
         // 子节点集合与当前节点名相关
-        List<XMLObject> currLevelchildren = parentNode.getChildTags(this.getTagName());
+        List<XMLObject> parentChildren = parentNode.getChildTags(this.getTagName());
 
         // 从原来所属父节点中移出当前节点
         setFloating();
 
         // 将当前节点插入到子节点第一个
-        LinkedList<XMLObject> linkedList = Lists.newLinkedList(currLevelchildren);
-        currLevelchildren.clear();
+        LinkedList<XMLObject> linkedList = Lists.newLinkedList(parentChildren);
+        parentChildren.clear();
         linkedList.addFirst(this);
-        currLevelchildren.addAll(linkedList);
+        parentChildren.addAll(linkedList);
 
         // 设置父节点
         this.setParent(parentNode);
 
         return true;
-    }
-
-    /**
-     * 校验当前节点是否根节点
-     *
-     * @return boolean true-根节点, false-不是根节点
-     */
-    public boolean isRootElement() {
-        return rootElement;
-    }
-
-    /**
-     * 设置标签文本内容
-     *
-     * @param content 标签存文本内容
-     */
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    /**
-     * 设置当前标签名
-     *
-     * @param tagName 当前标签名
-     */
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    /**
-     * 验证当前节点是否有效
-     *
-     * @return boolean true-有效节点, false-无效节点
-     */
-    public boolean valid() {
-        return StringUtil.isNotEmpty(this.tagName, true);
     }
 
     /**
@@ -469,19 +457,11 @@ public class XMLObject implements Serializable {
             throw new RuntimeException(e);
         }
 
-        // 填充一级属性
-        // 私有属性
-        List<Field> fields = Lists.newArrayList(Arrays.asList(cls.getFields()));
-        fields.addAll(Arrays.asList(cls.getDeclaredFields()));
-        for (Field field : fields) {
-
-            // 不处理 final/static 修饰属性
-            int modifiers = field.getModifiers();
-            if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers))
-                continue;
-
-            setValue(bean, field);
-        }
+        // 获取字段列表
+        List<Field> fields = Reflects.getFields(cls);
+        for (Field field : fields)
+            if (!Reflects.isStaticOrFinal(field))
+                setValue(bean, field);
 
         return bean;
     }
@@ -505,16 +485,6 @@ public class XMLObject implements Serializable {
         }
 
         return beans;
-    }
-
-    /**
-     * 校验当前节点与另一个节点属于同名节点
-     *
-     * @param other 另一个节点
-     * @return boolean true-同名节点,false-不是同名节点
-     */
-    private boolean sameTagName(XMLObject other) {
-        return this.getTagName().equals(other.getTagName());
     }
 
     /**
@@ -571,54 +541,28 @@ public class XMLObject implements Serializable {
         }
     }
 
-
     /**
      * 从父节点中将当前节点移出
      */
     private void setFloating() {
-        if (this.isRootElement()) {
-            throw new RuntimeException("Cann't delete root element");
-        }
+        if (isRootElement())
+            return;
 
-        XMLObject currParent = this.getParent();
+        XMLObject currParent = getParent();
         if (null != currParent) {
-            Map<String, List<XMLObject>> currParentChildren = currParent.getChildTags();
+            Map<String, List<XMLObject>> parentChildren = currParent.getChildTags();
 
             // 从父节点的子节点集合中删除当前节点
-            String currTagName = this.getTagName();
-            List<XMLObject> currLevelChildren = currParentChildren.get(currTagName);
-            boolean removed = currLevelChildren.remove(this);
-            if (!removed) {
-                log.debug("Delete the current node failure in the current layer[" + currTagName + "]");
-            }
+            String currTagName = getTagName();
+            List<XMLObject> currLevelChildren = parentChildren.get(currTagName);
+            currLevelChildren.remove(this);
 
             // 删除无效的子节点记录
-            if (CollectionUtils.isEmpty(currLevelChildren)) {
-                log.debug("Clear invalid children set[" + currTagName + "]");
-                currParentChildren.remove(currTagName);
-            }
+            if (CollectionUtils.isEmpty(currLevelChildren))
+                parentChildren.remove(currTagName);
             this.parent = null;
         }
     }
-
-    /**
-     * 设置父级节点
-     *
-     * @param parent 父节点对象
-     */
-    void setParent(XMLObject parent) {
-        this.parent = parent;
-    }
-
-    /**
-     * 设置是否根节点
-     *
-     * @param isRoot true-根节点, false-叶子节点
-     */
-    void setRootElement(boolean isRoot) {
-        this.rootElement = isRoot;
-    }
-
 
     /**
      * 编辑节点前结构验证, 当前节点不是root节点且父节点不是漂浮状态
@@ -627,19 +571,23 @@ public class XMLObject implements Serializable {
      * @return true-验证通过, false-验证失败
      */
     private boolean validationInnerEdit(XMLObject targetParent) {
-        if (!valid()) {
-            log.debug("The current node is invalid");
-            return false;
-        } else if (this.isRootElement()) {
-            log.debug("The current node cann't is root element");
+        if (StringUtil.isBlank(tagName)) {
+            log.debug("当前节点未指定有效标签名称");
             return false;
         }
 
-        if (!targetParent.valid()) {
-            log.debug("The target parent node is invalid");
+        if (this.isRootElement()) {
+            log.debug("根节点不允许被插入到其他节点中");
             return false;
-        } else if (targetParent.isFloating()) {
-            log.debug("Taget the parent node is unstable");
+        }
+
+        if (StringUtil.isBlank(targetParent.tagName)) {
+            log.debug("目标节点未指定有效标签名称");
+            return false;
+        }
+
+        if (targetParent.isFloating()) {
+            log.debug("目标节点不稳定, 不允许插入其他节点");
             return false;
         }
 
@@ -653,24 +601,25 @@ public class XMLObject implements Serializable {
      * @return boolean true-验证通过, false-验证失败
      */
     private boolean validationOuterEdit(XMLObject markerNode) {
-        // 当前节点和标记节点不能是同一个节点
-        if (this.equals(markerNode)) {
-            log.debug("The marker node cann't equal to current node");
+        if (equals(markerNode)) {
+            log.debug("目标节点不能是当前节点");
             return false;
         }
 
         // 当前节点不能是根节点
-        if (this.isRootElement()) {
-            log.debug("The current node cann't is root node");
+        if (isRootElement()) {
+            log.debug("根节点不支持当前操作");
             return false;
         }
 
         // 标记节点不能是根节点, 且不能为漂浮状态
         if (markerNode.isRootElement()) {
-            log.debug("The marker node cann't is root node");
+            log.debug("目标节点不支持当前操作");
             return false;
-        } else if (markerNode.isFloating()) {
-            log.debug("The marker node is not stable");
+        }
+
+        if (markerNode.isFloating()) {
+            log.debug("目标节点不稳定, 不允许插入其他节点");
             return false;
         }
 
@@ -722,17 +671,16 @@ public class XMLObject implements Serializable {
      * @param xmlField XML字段映射注解
      */
     private void setValueByTag(Object bean, Field field, XmlField xmlField) throws Exception {
-        Class<?> fieldType = field.getType();
         field.setAccessible(true);
 
         // 支持 path + hierarchy 寻路
         XMLObject target = parseFieldPath(xmlField);
-        if (null == target)
-            return;
+        if (null != target) {
+            boolean isFired = trySimpleValueByTag(bean, field, target);
+            isFired = isFired || tryCollectionOrArray(bean, field);
+            isFired = isFired || tryCustomType(bean, field);
 
-        if (trySimpleValueByTag(bean, field, target)
-                || tryCollectionOrArray(bean, field)
-                || tryCustomType(bean, field)) {
+            log.debug("path&hierarchy处理结果: " + isFired);
         }
     }
 
@@ -828,7 +776,7 @@ public class XMLObject implements Serializable {
      * @param defaultName 默认名称
      * @return 映射名称
      */
-    private String getTargetTagName(XmlField xmlField, String defaultName) {
+    private static String getTargetTagName(XmlField xmlField, String defaultName) {
         return StringUtil.defaultIfBlank(xmlField.name(), defaultName);
     }
 
@@ -930,5 +878,22 @@ public class XMLObject implements Serializable {
         field.set(bean, obj);
 
         //Reflects.setJsonValue(bean, field, value);
+    }
+
+    /**
+     * 检查是否包含有效子标签
+     *
+     * @return 包含有效子标签返回true, 否则返回false
+     */
+    public boolean hasEffectiveChildren() {
+        Map<String, List<XMLObject>> childTags = getChildTags();
+        if (null == childTags || 0 == childTags.size())
+            return false;
+
+        for (Entry<String, List<XMLObject>> me : childTags.entrySet())
+            if (CollectionUtils.isNotEmpty(me.getValue()))
+                return true;
+
+        return false;
     }
 }

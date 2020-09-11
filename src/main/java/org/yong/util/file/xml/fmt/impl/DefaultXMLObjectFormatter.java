@@ -2,17 +2,20 @@ package org.yong.util.file.xml.fmt.impl;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.yong.util.common.StringUtil;
 import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.fmt.XMLObjectFormatter;
-import org.yong.util.common.StringUtil;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * 默认XML格式化工具
+ *
+ * @version 1.0
+ */
 public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
-
-    private static final String NEW_LINE = "\n";
 
     /**
      * 单个缩进位
@@ -38,7 +41,7 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
      */
     public DefaultXMLObjectFormatter(boolean compact) {
         this.compact = compact;
-        this.systemLineSeparator = (compact ? StringUtil.EMPTY : NEW_LINE);
+        this.systemLineSeparator = compact ? StringUtil.EMPTY : System.lineSeparator();
     }
 
     /**
@@ -52,7 +55,8 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
 
     @Override
     public StringBuilder format(XMLObject xmlObject) {
-        StringBuilder content = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        StringBuilder content = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        content.append(systemLineSeparator);
         String currentNewLine = getSystemLineSeparator();
         format(xmlObject, content, currentNewLine);
         return content;
@@ -82,17 +86,19 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
         String content = xmlObject.getContent();
         contentRepository.append(createContent(content));
 
-        Map<String, List<XMLObject>> childTags = xmlObject.getChildTags();
-        // 如果不存在子标签和者标签体
-        if (MapUtils.isEmpty(childTags) && StringUtil.isEmpty(content, true)) {
+
+        // @version 1.3
+        boolean hasChildren = xmlObject.hasEffectiveChildren();
+        if (!hasChildren && StringUtil.isEmpty(content, true)) {
             // 在最后一个 ">" 前面插入 "/", 使标签闭合
             int idx = contentRepository.lastIndexOf(">");
-            contentRepository.insert(idx, "/");
+            contentRepository.insert(idx, " /");
             // 结束程序
             return;
         }
 
-        // 如果存在子标签
+        // 处理子标签
+        Map<String, List<XMLObject>> childTags = xmlObject.getChildTags();
         for (Entry<String, List<XMLObject>> me : childTags.entrySet()) {
             // 标签层级 : nodeLevel+1
             this.nodeLevel++;
@@ -150,6 +156,7 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
     private String createAttrs(XMLObject xmlObject) {
         StringBuilder attrContent = new StringBuilder();
 
+        // 遍历所有属性
         Map<String, String> attrs = xmlObject.getAttrs();
         if (MapUtils.isNotEmpty(attrs)) {
             for (Entry<String, String> me : attrs.entrySet()) {
@@ -160,7 +167,6 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
                     attrContent.append(" ").append(attrName).append("=").append("\"").append(attrVal).append("\"");
                 }
             }
-
         }
 
         attrContent.append(">");

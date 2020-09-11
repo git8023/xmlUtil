@@ -4,19 +4,19 @@ import com.alibaba.fastjson.JSON;
 import org.junit.Before;
 import org.junit.Test;
 import org.yong.util.common.StringUtil;
-import org.yong.util.entity.TourLine;
-import org.yong.util.entity.TourStation;
-import org.yong.util.entity.TourTask;
+import org.yong.util.entity.*;
 import org.yong.util.file.xml.XMLObject;
 import org.yong.util.file.xml.XMLParser;
-import org.yong.util.file.xml.parser.FieldValueParserFactory;
 import org.yong.util.file.xml.parser.DefaultSimpleValueParser;
+import org.yong.util.file.xml.parser.FieldValueParserFactory;
 import org.yong.util.file.xml.parser.iface.SimpleValueParser;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -72,6 +72,28 @@ public class XMLParserTest3 {
         assertEquals(2, stationList.size());
         System.out.println(stationList.get(0));
         System.out.println(JSON.toJSONString(stationList.get(0)));
+    }
+
+    @Test
+    public void testTransfer() throws IOException {
+        SnapshotPosition sp = new SnapshotPosition(1, 2, 3, 4, 5, 6, 7, 8, null);
+        TourAction tourAction = new TourAction(1, "Foo名称", 2, 1234567, sp);
+
+        // Bean 转化为 XMLObject
+        XMLObject root = XMLObject.of(tourAction);
+        root.setRootElement(true);
+        Map<String, List<XMLObject>> childTags = root.getChildTags();
+        assertEquals(1, childTags.size());
+
+        String path = XMLParserTest3.class.getResource("/").getPath() + "/xml-test-transfer2-compact.xml";
+        File compactFile = new File(path);
+        System.out.println(compactFile);
+        XMLParser.transfer(root, compactFile, true);
+
+        path = XMLParserTest3.class.getResource("/").getPath() + "/xml-test-transfer2-retract.xml";
+        File retractFile = new File(path);
+        System.out.println(retractFile);
+        XMLParser.transfer(root, retractFile, false);
     }
 
     @Test

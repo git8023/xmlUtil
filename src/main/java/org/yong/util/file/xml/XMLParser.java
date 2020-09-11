@@ -232,14 +232,14 @@ public class XMLParser {
     }
 
     /**
-     * 转换为文件中, 必须从根节点开始
+     * 转换为文件
      *
      * @param root       根元素
      * @param outputFile 输出文件
      * @param compact    true-紧凑排版, false-缩进排版
      * @return boolean true-转换成功, false-转换失败
      */
-    public boolean transfer(XMLObject root, File outputFile, boolean compact) throws IOException {
+    public static boolean transfer(XMLObject root, File outputFile, boolean compact) throws IOException {
         // root校验
         if (null == root || !root.isRootElement()) {
             log.debug("指定节点不是有效根节点");

@@ -1,6 +1,8 @@
 package org.yong.util.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.yong.util.file.xml.annotation.FieldType;
 import org.yong.util.file.xml.annotation.XmlField;
 import org.yong.util.file.xml.annotation.XmlTag;
@@ -11,6 +13,8 @@ import org.yong.util.file.xml.annotation.XmlTag;
 
 // @XmlTag 建立TourAction和XMLObject映射关系
 @XmlTag
+@NoArgsConstructor
+@AllArgsConstructor
 public class TourAction {
 
     @XmlField

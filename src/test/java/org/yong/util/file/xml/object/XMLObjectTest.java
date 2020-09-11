@@ -14,8 +14,6 @@ import org.yong.util.file.xml.parser.XMLParserTest;
 
 public class XMLObjectTest {
 
-    private XMLParser xmlParser;
-
     private XMLObject root;
 
     @Before
@@ -26,7 +24,7 @@ public class XMLObjectTest {
         File file = new File(xmlPath);
         assertTrue(file.exists());
 
-        xmlParser = new XMLParser(xmlPath);
+        XMLParser xmlParser = new XMLParser(xmlPath);
         root = xmlParser.parse();
     }
 

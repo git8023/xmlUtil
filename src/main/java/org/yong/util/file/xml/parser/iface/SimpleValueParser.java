@@ -10,8 +10,9 @@ import java.lang.reflect.Type;
  * 接口实现需要在调用XML映射 {@link org.yong.util.file.xml.XMLObject#toBean(Class) 单个实例}
  * (或 {@link org.yong.util.file.xml.XMLObject#toBeans(String, Class) 实例列表})
  * 之前 {@link org.yong.util.file.xml.parser.FieldValueParserFactory#reg(SimpleValueParser) 手动注册}
+ *
  * @param <T> 解析器支持的泛型类型
- * @version 1.4
+ * @version 1.3
  */
 public interface SimpleValueParser<T> {
 
@@ -55,7 +56,7 @@ public interface SimpleValueParser<T> {
      * @param value 字段值
      * @return XML标签属性名(标签体)
      */
-    default String fromBean(T value) {
+    default <D> String fromBean(D value) {
         if (null == value)
             return StringUtil.EMPTY;
 

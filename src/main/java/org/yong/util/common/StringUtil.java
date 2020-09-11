@@ -15,15 +15,10 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public final class StringUtil extends StringUtils {
-    private static final String FILE_SEPARATOR = System.getProperty("file.separator");
-
-    private static final String WINDOWS_PREFIX = "windows";
-
-    //public static final String EMPTY = "";
-
-    private static final String SEPARATOR_OF_UNIX_FILE = "/";
-
-    private static final String SEPARATOR_OF_WINDOWS_FILE = "\\";
+    public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+    public static final String WINDOWS_PREFIX = "windows";
+    public static final String SEPARATOR_OF_UNIX_FILE = "/";
+    public static final String SEPARATOR_OF_WINDOWS_FILE = "\\";
 
     /**
      * Windows 换行符
@@ -219,14 +214,12 @@ public final class StringUtil extends StringUtils {
 
         boolean isRootPath = isStartSeparator(rPath);
         if (isWinSys) {
-            log.debug("The System of WINDOWS");
             rPath = rPath.replace(SEPARATOR_OF_UNIX_FILE, SEPARATOR_OF_WINDOWS_FILE);
             if (isRootPath) {
                 rPath = rPath.substring(1);
             }
             return rPath.matches("[a-zA-Z][:][\\\\].+") ? rPath : (classPath + rPath);
         } else {
-            log.debug("The System of UNIX");
             rPath = rPath.replace(SEPARATOR_OF_WINDOWS_FILE, SEPARATOR_OF_UNIX_FILE);
             return (rPath.startsWith(classPath) ? rPath : (classPath + rPath));
         }

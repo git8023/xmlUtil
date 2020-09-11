@@ -26,7 +26,7 @@ public class XMLParserTest2 {
     }
 
     @Test
-    public void testTransferRoot() throws IOException {
+    public void testTransfer() throws IOException {
         Map<String, List<XMLObject>> childTags = root.getChildTags();
         assertEquals(1, childTags.size());
 

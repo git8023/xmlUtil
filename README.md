@@ -2,6 +2,26 @@
 简单封装 [`Apache dom4j(1.6.1)`](http://www.dom4j.org/dom4j-1.6.1/ "官方网站"), 封装后将使用面向对象的思维读写 XML 文件</br>.
 
 # 版本
+
+* Version 1.3
+    1. 新增字段解析器接口 `SimpleValueParser`
+    2. 新增`实体类`转化为`XMLObject`接口`XMLObject.of(T)`
+    3. 实体类导出XML文件示例:  
+    ```java
+      // 数据对象必须使用 @XmlTag 注解,
+      // 并且只导出 @XmlField 注解的字段.
+      // 注意: 自定义复杂属性也要遵循此规则
+      Object data = ...;
+      XMLObject root = XMLObject.of(data);
+  
+      // 目标节点必须是根节点
+      root.setRootElement(true);
+  
+      // true-紧凑排版, false-缩进排版
+      boolean compact = true;
+      XMLParser.transfer(root, new File("outFilePath.xml"), compact);
+    ```
+
 * Version 1.2
     1. 新增实体类注解`@XmlTag`  
        `@XmlTag`注解的实体类可以通过`XMLObject.toBean()`映射到实体类

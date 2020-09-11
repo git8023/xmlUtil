@@ -7,7 +7,7 @@ import java.util.HashMap;
 /**
  * 字段值解析器工厂, 通过类型获取解析器.
  *
- * @version 1.4
+ * @version 1.3
  */
 public class FieldValueParserFactory {
 

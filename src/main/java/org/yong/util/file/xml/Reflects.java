@@ -1,9 +1,11 @@
 package org.yong.util.file.xml;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class Reflects {
@@ -94,5 +96,29 @@ public class Reflects {
             return CollectionType.SET;
 
         return null;
+    }
+
+    /**
+     * 获取指定类公开/继承/私有字段
+     *
+     * @param cls 目标类字节码
+     * @param <T> 目标类类型
+     * @return 字段列表
+     */
+    public static <T> List<Field> getFields(Class<T> cls) {
+        List<Field> fields = Lists.newArrayList(Arrays.asList(cls.getFields()));
+        fields.addAll(Arrays.asList(cls.getDeclaredFields()));
+        return fields;
+    }
+
+    /**
+     * 校验指定字段是否静态或者常量
+     *
+     * @param field 目标字段
+     * @return 静态或常量返回true, 否则返回false
+     */
+    public static boolean isStaticOrFinal(Field field) {
+        int modifiers = field.getModifiers();
+        return Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers);
     }
 }
