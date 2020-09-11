@@ -38,7 +38,7 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
      */
     public DefaultXMLObjectFormatter(boolean compact) {
         this.compact = compact;
-        this.systemLineSeparator = (compact ? StringUtil.EMPTY_STRING : NEW_LINE);
+        this.systemLineSeparator = (compact ? StringUtil.EMPTY : NEW_LINE);
     }
 
     /**
@@ -183,7 +183,7 @@ public class DefaultXMLObjectFormatter implements XMLObjectFormatter {
      * @return String 缩进位字符串
      */
     private String createRetract() {
-        StringBuilder retract = new StringBuilder(StringUtil.EMPTY_STRING);
+        StringBuilder retract = new StringBuilder(StringUtil.EMPTY);
         if (!this.compact)
             for (int i = 0; i < this.nodeLevel; i++)
                 retract.append(DefaultXMLObjectFormatter.RETRACT_VALUE);

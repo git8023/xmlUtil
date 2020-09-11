@@ -3,7 +3,6 @@ package org.yong.util.common;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +19,7 @@ public final class StringUtil extends StringUtils {
 
     private static final String WINDOWS_PREFIX = "windows";
 
-    public static final String EMPTY_STRING = "";
+    //public static final String EMPTY = "";
 
     private static final String SEPARATOR_OF_UNIX_FILE = "/";
 
@@ -461,12 +460,12 @@ public final class StringUtil extends StringUtils {
     /**
      * 转换为字符串
      *
-     * @param valOjb 目标对象, null时返回{@link #EMPTY_STRING}
+     * @param valOjb 目标对象, null时返回{@link #EMPTY}
      * @param isTrim 是否去掉前后空格
      * @return String 转换后字符串
      */
     public static String toStringEmpty(Object valOjb, boolean isTrim) {
-        String val = EMPTY_STRING;
+        String val = EMPTY;
         if (null != valOjb) {
             val = String.valueOf(valOjb);
         }

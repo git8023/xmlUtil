@@ -20,6 +20,7 @@ public class Reflects {
                 Character.class,
                 Byte.class,
                 Boolean.class,
+
                 String.class,
                 Date.class
         ));

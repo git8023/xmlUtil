@@ -8,6 +8,8 @@ import org.yong.util.file.xml.annotation.FieldType;
 import org.yong.util.file.xml.annotation.XmlField;
 import org.yong.util.file.xml.annotation.XmlTag;
 import org.yong.util.common.StringUtil;
+import org.yong.util.file.xml.parser.FieldValueParserFactory;
+import org.yong.util.file.xml.parser.iface.SimpleValueParser;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -235,14 +237,14 @@ public class XMLObject implements Serializable {
     }
 
     /**
-     * 获取指定属性, 如果属性不存在或没有值, 总是返回{@link StringUtil#EMPTY_STRING}
+     * 获取指定属性, 如果属性不存在或没有值, 总是返回{@link StringUtil#EMPTY}
      *
      * @param attrName 属性名
      * @return String 属性值
      */
     public String getAttr(String attrName) {
         String attrVal = getAttrs().get(attrName);
-        return StringUtil.isNotEmpty(attrVal, true) ? attrVal : StringUtil.EMPTY_STRING;
+        return StringUtil.isNotEmpty(attrVal, true) ? attrVal : StringUtil.EMPTY;
     }
 
     /**
@@ -449,11 +451,13 @@ public class XMLObject implements Serializable {
     }
 
     /**
-     * 映射为实体类
+     * 映射为实体类; 要注册自定义解析器需要在 {@link FieldValueParserFactory} 中注册
+     * 并且必须在调用当前方法之前.
      *
      * @param cls 实体类字节码
      * @param <T> 实体类泛型
      * @return 实体类对象
+     * @see FieldValueParserFactory 字段实例解析器工厂
      */
     public <T> T toBean(Class<T> cls) {
         validExpectTagName(cls);
@@ -489,6 +493,7 @@ public class XMLObject implements Serializable {
      * @param cls          实体类字节码
      * @param <T>          实体类类型
      * @return 实体类列表
+     * @see #toBean(Class)
      */
     public <T> List<T> toBeans(String childTagName, Class<T> cls) {
         List<T> beans = Lists.newArrayList();
@@ -694,8 +699,8 @@ public class XMLObject implements Serializable {
                 case ATTRIBUTE:
                     XMLObject target = parseFieldPath(xmlField);
                     if (null != target) {
-                        String attr = target.getAttr(name);
-                        Reflects.setJsonValue(bean, field, attr);
+                        String value = target.getAttr(name);
+                        setFieldValue(bean, field, value);
                     }
                     break;
 
@@ -852,8 +857,7 @@ public class XMLObject implements Serializable {
 
         if (1 == children.size()) {
             XMLObject firstChildTag = children.get(0);
-            String val = firstChildTag.content;
-            Reflects.setJsonValue(bean, field, val);
+            setFieldValue(bean, field, firstChildTag.content);
         }
         return true;
     }
@@ -911,4 +915,20 @@ public class XMLObject implements Serializable {
         }
     }
 
+    /**
+     * 设置字段值
+     *
+     * @param bean  数据对象
+     * @param field 字段对象
+     * @param value 字段值
+     */
+    private void setFieldValue(Object bean, Field field, String value) throws IllegalAccessException {
+        Class<?> type = field.getType();
+        SimpleValueParser<?> parser = FieldValueParserFactory.getFactory(type);
+        Object obj = parser.fromXml(type, value);
+        field.setAccessible(true);
+        field.set(bean, obj);
+
+        //Reflects.setJsonValue(bean, field, value);
+    }
 }
